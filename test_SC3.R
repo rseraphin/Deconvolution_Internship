@@ -1,18 +1,52 @@
 #### Initialisation ####
-library("SingleCellExperiment")
-library ("tidyverse")
-library("SC3")
-library("scater")
-library("DescTools")
-library('sva')
-library("Rtsne")
-library("M3C")
-library("Seurat")
-library("sctransform")
-library("DESeq2")
-library('bseqsc')
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+if (!require('SingleCellExperiment')){
+  BiocManager::install("SingleCellExperiment")
+  library("SingleCellExperiment")
+}
+if (!require('tidyverse')){
+  install.packages("tidyverse")
+  library ("tidyverse")
+}
+if (!require('SC3')){
+  BiocManager::install("SC3")
+  library("SC3")
+}
+if (!require('scater')){
+  BiocManager::install("scater")
+  library("scater")
+}
+if (!require('DescTools')){
+  install.packages("DescTools")
+  library("DescTools")
+}
+if (!require('sva')){
+  BiocManager::install("sva")
+  library('sva')
+}
+if (!require('Seurat')){
+  BiocManager::install("multtest")
+  install.packages('Seurat')
+  library("Seurat")
+  install.packages('sctransform')
+  library("sctransform")
+}
+if (!require('DESeq2')){
+  BiocManager::install("DESeq2")
+  library("DESeq2")
+}
+if (!require('bseqsc')){
+  # install devtools if necessary
+  install.packages('devtools')
+  
+  # install bseqsc
+  devtools::install_github('shenorrlab/bseqsc')
+  library('bseqsc')
+}
 
-setwd("dataset/")
+
+setwd("Master_2/")
 
 organise_marker_genes <- function(object, k, p_val, auroc) {
   dat <- rowData(object)[, c(paste0("sc3_", k, "_markers_clusts"), paste0("sc3_", k, 
@@ -38,7 +72,7 @@ organise_marker_genes <- function(object, k, p_val, auroc) {
 
 #### SC3 analysis of sce (sciatic nerves) ####
 
-data_single <- read.table("GSE144707_countTable_aggrNerveStStD1D5.txt.gz", header = TRUE)
+data_single <- read.table("dataset/GSE144707_countTable_aggrNerveStStD1D5.txt.gz", header = TRUE)
 data_single[1:3, 1:3]
 rownames(data_single) <- data_single[,1]
 data_single <- subset(data_single, select = -1)
@@ -90,7 +124,7 @@ sc3_plot_markers(
 
 
 #### Lungs data analysis ####
-data_lungs <- read.table("GSE113530_countsNormFinal.txt.gz", header = TRUE)
+data_lungs <- read.table("dataset/GSE113530_countsNormFinal.txt.gz", header = TRUE)
 
 dup <- duplicated(data_lungs)
 data_lungs_dedup <- data_lungs[!dup,]
@@ -130,9 +164,9 @@ sc3_clust3 <- subset(marker$feature_symbol,marker$sc3_3_markers_clusts == 3)
 
 
 #### sce2 unNorm ####
-#test <- read.table("GSE117975_countsNormFinal.txt.gz", header = T)
+#test <- read.table("dataset/GSE117975_countsNormFinal.txt.gz", header = T)
 
-data_lungs_unNorm <- read.table("GSE113530_countsFinal.txt.gz", header = TRUE)
+data_lungs_unNorm <- read.table("dataset/GSE113530_countsFinal.txt.gz", header = TRUE)
 
 sce2_unNorm <- SingleCellExperiment(
   assays = list(
@@ -159,7 +193,7 @@ sc3_interactive(sce2_unNorm)
 
 
 #### SC3 analysis Tcell ####
-data_Tcell <- read.table("GSE130812_FPKM_C1_table.txt.gz", header= TRUE)
+data_Tcell <- read.table("dataset/GSE130812_FPKM_C1_table.txt.gz", header= TRUE)
 
 rownames(data_Tcell) <- data_Tcell[,1]
 gene_table <- subset(data_Tcell, select = c(2))
@@ -197,7 +231,7 @@ sc3_plot_markers(
 
 
 #### SC3 analysis broad digestive organs ####
-data_broad <- read.table("GSE92332_AtlasFullLength_TPM.txt.gz",header = TRUE)
+data_broad <- read.table("dataset/GSE92332_AtlasFullLength_TPM.txt.gz",header = TRUE)
 
 sce4 <- SingleCellExperiment(
   assays = list(
@@ -319,7 +353,7 @@ write_delim(as.data.frame(seurat_clust1), 'seurat_clust1_markers_GSE113530', '\t
 
 #### Bulk sciatic ####
 
-data_bulk <- read.table("GSE144705_processedData_bulkRNAseq_YdensEtAl.txt.gz", header = TRUE)
+data_bulk <- read.table("dataset/GSE144705_processedData_bulkRNAseq_YdensEtAl.txt.gz", header = TRUE)
 data_bulk
 
 data_bulk_marker <- subset(data_bulk, data_bulk$Gene %like% siatic_markers$gene)
@@ -347,7 +381,7 @@ sum(res_SN_SPF$padj < 0.1, na.rm=TRUE)
 
 
 #### Pancreas dataset ####
-pancreas_h1 <- read.csv("GSE84133_Pancreas/GSM2230757_human1_umifm_counts.csv.gz", header = TRUE)
+pancreas_h1 <- read.csv("dataset/GSE84133_Pancreas/GSM2230757_human1_umifm_counts.csv.gz", header = TRUE)
 rownames(pancreas_h1) <- pancreas_h1$X
 pancreas_h1 <- subset(pancreas_h1, select = -c(1))
 pancreas_h1_sup <- subset(pancreas_h1, select = c(1,2))
@@ -369,7 +403,7 @@ pancreas_h1_seurat <- RunTSNE(pancreas_h1_seurat)
 TSNEPlot(pancreas_h1_seurat)
 
 
-pancreas_h2 <- read.csv("GSE84133_Pancreas/GSM2230758_human2_umifm_counts.csv.gz", header = TRUE)
+pancreas_h2 <- read.csv("dataset/GSE84133_Pancreas/GSM2230758_human2_umifm_counts.csv.gz", header = TRUE)
 rownames(pancreas_h2) <- pancreas_h2$X
 pancreas_h2 <- subset(pancreas_h2, select = -c(1))
 pancreas_h2_sup <- subset(pancreas_h2, select = c(1,2))
@@ -391,7 +425,7 @@ pancreas_h2_seurat_markers <- FindAllMarkers(pancreas_h2_seurat, only.pos = T, m
 
 
 
-pancreas_h3 <- read.csv("GSE84133_Pancreas/GSM2230759_human3_umifm_counts.csv.gz", header = TRUE)
+pancreas_h3 <- read.csv("dataset/GSE84133_Pancreas/GSM2230759_human3_umifm_counts.csv.gz", header = TRUE)
 rownames(pancreas_h3) <- pancreas_h3$X
 pancreas_h3 <- subset(pancreas_h3, select = -c(1))
 pancreas_h3_sup <- subset(pancreas_h3, select = c(1,2))
@@ -412,7 +446,7 @@ pancreas_h3_seurat_markers <- FindAllMarkers(pancreas_h3_seurat, only.pos = T, m
 
 
 
-pancreas_h4 <- read.csv("GSE84133_Pancreas/GSM2230760_human4_umifm_counts.csv.gz", header = TRUE)
+pancreas_h4 <- read.csv("dataset/GSE84133_Pancreas/GSM2230760_human4_umifm_counts.csv.gz", header = TRUE)
 rownames(pancreas_h4) <- pancreas_h4$X
 pancreas_h4 <- subset(pancreas_h4, select = -c(1))
 pancreas_h4_sup <- subset(pancreas_h4, select = c(1,2))
