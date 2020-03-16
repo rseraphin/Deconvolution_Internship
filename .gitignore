@@ -1,2 +1,3 @@
 /dataset
-
+*.RData*
+*.Rhistory*
