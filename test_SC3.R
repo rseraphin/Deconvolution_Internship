@@ -44,9 +44,13 @@ if (!require('bseqsc')){
   devtools::install_github('shenorrlab/bseqsc')
   library('bseqsc')
 }
-
+if (!require('roots')){
+  install.packages('roots')
+  library('roots')
+}
 
 setwd("Master_2/")
+load('dataset/.RData')
 
 organise_marker_genes <- function(object, k, p_val, auroc) {
   dat <- rowData(object)[, c(paste0("sc3_", k, "_markers_clusts"), paste0("sc3_", k, 
@@ -69,6 +73,7 @@ organise_marker_genes <- function(object, k, p_val, auroc) {
     return(NULL)
   }
 }
+
 
 #### SC3 analysis of sce (sciatic nerves) ####
 
@@ -393,14 +398,21 @@ pancreas_h1_seurat <- CreateSeuratObject(counts = pancreas_h1)
 pancreas_h1_seurat <- SCTransform(pancreas_h1_seurat)
 
 pancreas_h1_seurat <- RunPCA(pancreas_h1_seurat)
-pancreas_h1_seurat <- RunUMAP(pancreas_h1_seurat, dims = 1:30)
-pancreas_h1_seurat <- FindNeighbors(pancreas_h1_seurat, dims = 1:30)
+pancreas_h1_seurat <- RunUMAP(pancreas_h1_seurat, dims = 10:20)
+pancreas_h1_seurat <- FindNeighbors(pancreas_h1_seurat, dims = 10:20)
 pancreas_h1_seurat <- FindClusters(pancreas_h1_seurat)
 DimPlot(pancreas_h1_seurat, label = T) + NoLegend()
 pancreas_h1_seurat_markers <- FindAllMarkers(pancreas_h1_seurat, only.pos = T, min.pct =  0.25, logfc.threshold = 0.25)
 
 pancreas_h1_seurat <- RunTSNE(pancreas_h1_seurat)
 TSNEPlot(pancreas_h1_seurat)
+
+pancreas_h1_seurat <- JackStraw(pancreas_h1_seurat, num.replicate = 100, dims = 20)
+pancreas_h1_seurat <-  ScoreJackStraw(pancreas_h1_seurat, dims = 1:20)
+
+JackStrawPlot(pancreas_h1_seurat, dims = 1:20)
+
+ElbowPlot(pancreas_h1_seurat,ndims = 20)
 
 
 pancreas_h2 <- read.csv("dataset/GSE84133_Pancreas/GSM2230758_human2_umifm_counts.csv.gz", header = TRUE)
@@ -420,7 +432,6 @@ pancreas_h2_seurat <- FindNeighbors(pancreas_h2_seurat, dims = 1:30)
 pancreas_h2_seurat <- FindClusters(pancreas_h2_seurat)
 DimPlot(pancreas_h2_seurat, label = T) + NoLegend()
 pancreas_h2_seurat_markers <- FindAllMarkers(pancreas_h2_seurat, only.pos = T, min.pct =  0.25, logfc.threshold = 0.25)
-
 
 
 
@@ -477,18 +488,18 @@ pancreas_all_seurat <- SCTransform(pancreas_all_seurat)
 pancreas_all_seurat <- RunPCA(pancreas_all_seurat)
 pancreas_all_seurat <- RunTSNE(pancreas_all_seurat)
 TSNEPlot(pancreas_all_seurat)
-pancreas_all_seurat <- RunUMAP(pancreas_all_seurat, dims = 1:30)
-pancreas_all_seurat <- FindNeighbors(pancreas_all_seurat, dims = 1:30)
+pancreas_all_seurat <- RunUMAP(pancreas_all_seurat, dims = 10:19)
+pancreas_all_seurat <- FindNeighbors(pancreas_all_seurat, dims = 10:19)
 pancreas_all_seurat <- FindClusters(pancreas_all_seurat)
 DimPlot(pancreas_all_seurat, label = T) + NoLegend()
 pancreas_all_seurat_markers <- FindAllMarkers(pancreas_all_seurat, only.pos = T, min.pct =  0.25, logfc.threshold = 0.25)
 
-pancreas_all_seurat <- JackStraw(pancreas_all_seurat, num.replicate = 100)
-pancreas_all_seurat <-  ScoreJackStraw(pancreas_all_seurat, dims = 1:20)
+pancreas_all_seurat <- JackStraw(pancreas_all_seurat, num.replicate = 100, dims = 30)
+pancreas_all_seurat <-  ScoreJackStraw(pancreas_all_seurat, dims = 1:30)
 
-JackStrawPlot(pancreas_all_seurat, dims = 1:20)
+JackStrawPlot(pancreas_all_seurat, dims = 10:30)
 
-ElbowPlot(pancreas_all_seurat,)
+ElbowPlot(pancreas_all_seurat,ndims = 30)
 
 
 
@@ -496,7 +507,7 @@ length(intersect(pancreas_h2_seurat_markers$gene, pancreas_h1_seurat_markers$gen
 length(pancreas_h1_seurat_markers$gene)
 length(pancreas_h2_seurat_markers$gene)
 
-known_marker <- c("GCG",'INS','PPY','SST','GHRL','PRSS1','KRT19','SPARC','VWF','RGS5','PDGFRA','SOX10','SDS','TPSAB1','TRAC')
+known_marker <- c("GCG",'INS','PPY','SST','GHRL','PRSS1',"CPA1",'KRT19','SPARC','VWF','RGS5','PDGFRA','SOX10','SDS','TPSAB1','TRAC')
 
 topn_all <- pancreas_all_seurat_markers %>% group_by(cluster) %>% top_n(n=5, wt = avg_logFC)
 DoHeatmap(pancreas_all_seurat, features = known_marker) + NoLegend()
@@ -507,6 +518,14 @@ DoHeatmap(pancreas_h2_seurat, features = known_marker) + NoLegend()
 DoHeatmap(pancreas_h3_seurat, features = known_marker) + NoLegend()
 DoHeatmap(pancreas_h4_seurat, features = known_marker) + NoLegend()
 
+
+#### Data Pancreas Author ways ####
+
+sce_pancreas_all <- SingleCellExperiment(pancreas_all)
+sce_pancreas_h1 <- SingleCellExperiment(pancreas_h1)
+tpm(sce_pancreas_all) <- calculateTPM(pancreas_all)
+tpm(sce_pancreas_h1) <- calculateTPM(pancreas_h1)
+filterGenes(sce_pancreas_all, fano)
 
 
 
