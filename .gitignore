@@ -1,3 +1,5 @@
 /dataset
 *.RData*
 *.Rhistory*
+*.DS_Store*
+
