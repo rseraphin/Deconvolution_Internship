@@ -400,11 +400,11 @@ pancreas_h1_seurat <- SCTransform(pancreas_h1_seurat)
 pancreas_h1_seurat <- RunPCA(pancreas_h1_seurat)
 pancreas_h1_seurat <- RunUMAP(pancreas_h1_seurat, dims = 10:20)
 pancreas_h1_seurat <- FindNeighbors(pancreas_h1_seurat, dims = 10:20)
-pancreas_h1_seurat <- FindClusters(pancreas_h1_seurat)
+pancreas_h1_seurat <- FindClusters(pancreas_h1_seurat, resolution = 0.6)
 DimPlot(pancreas_h1_seurat, label = T) + NoLegend()
 pancreas_h1_seurat_markers <- FindAllMarkers(pancreas_h1_seurat, only.pos = T, min.pct =  0.25, logfc.threshold = 0.25)
 
-pancreas_h1_seurat <- RunTSNE(pancreas_h1_seurat)
+pancreas_h1_seurat <- RunTSNE(pancreas_h1_seurat, )
 TSNEPlot(pancreas_h1_seurat)
 
 pancreas_h1_seurat <- JackStraw(pancreas_h1_seurat, num.replicate = 100, dims = 20)
@@ -488,12 +488,27 @@ pancreas_all_seurat <- SCTransform(pancreas_all_seurat)
 pancreas_all_seurat <- RunPCA(pancreas_all_seurat)
 pancreas_all_seurat <- RunTSNE(pancreas_all_seurat)
 TSNEPlot(pancreas_all_seurat)
-pancreas_all_seurat <- RunUMAP(pancreas_all_seurat, dims = 10:19)
-pancreas_all_seurat <- FindNeighbors(pancreas_all_seurat, dims = 10:19)
-pancreas_all_seurat <- FindClusters(pancreas_all_seurat)
+pancreas_all_seurat <- RunUMAP(pancreas_all_seurat, dims = 1:30)
+pancreas_all_seurat <- FindNeighbors(pancreas_all_seurat, dims = 1:30)
+pancreas_all_seurat <- FindClusters(pancreas_all_seurat, resolution = 1.5)
 DimPlot(pancreas_all_seurat, label = T) + NoLegend()
 pancreas_all_seurat_markers <- FindAllMarkers(pancreas_all_seurat, only.pos = T, min.pct =  0.25, logfc.threshold = 0.25)
 
+
+DoHeatmap(pancreas_all_seurat, features = known_marker) + NoLegend()
+
+# Tested resolution 0.5 ~ 1.3
+
+# Testing merging clusters
+
+
+pancreas_all_seurat <- BuildClusterTree(pancreas_all_seurat, do.reorder = T, reorder.numeric = T)
+node.scores <- AssessNodes(pancreas_all_seurat)
+node.scores[order(node.scores$oobe,decreasing = T),] -> node.scores
+
+
+
+# Components analysis
 pancreas_all_seurat <- JackStraw(pancreas_all_seurat, num.replicate = 100, dims = 30)
 pancreas_all_seurat <-  ScoreJackStraw(pancreas_all_seurat, dims = 1:30)
 
@@ -502,21 +517,30 @@ JackStrawPlot(pancreas_all_seurat, dims = 10:30)
 ElbowPlot(pancreas_all_seurat,ndims = 30)
 
 
-
+# Markers comparison and visualization
 length(intersect(pancreas_h2_seurat_markers$gene, pancreas_h1_seurat_markers$gene))
 length(pancreas_h1_seurat_markers$gene)
 length(pancreas_h2_seurat_markers$gene)
 
 known_marker <- c("GCG",'INS','PPY','SST','GHRL','PRSS1',"CPA1",'KRT19','SPARC','VWF','RGS5','PDGFRA','SOX10','SDS','TPSAB1','TRAC')
 
-topn_all <- pancreas_all_seurat_markers %>% group_by(cluster) %>% top_n(n=5, wt = avg_logFC)
+topn_all <- pancreas_all_seurat_markers %>% group_by(cluster) %>% top_n(n=10, wt = avg_logFC)
 DoHeatmap(pancreas_all_seurat, features = known_marker) + NoLegend()
+
+known_marker %in% pancreas_all_seurat_markers$gene
+topn_all$gene %in% pancreas_all_seurat
+
+subset(pancreas_h1_seurat_markers, pancreas_h1_seurat_markers$gene %in% known_marker) 
+subset(pancreas_all_seurat_markers, pancreas_all_seurat_markers$gene %in% known_marker) 
 
 topn_h1 <- pancreas_h1_seurat_markers %>% group_by(cluster) %>% top_n(n=5, wt = avg_logFC)
 DoHeatmap(pancreas_h1_seurat, features = known_marker) + NoLegend()
 DoHeatmap(pancreas_h2_seurat, features = known_marker) + NoLegend()
 DoHeatmap(pancreas_h3_seurat, features = known_marker) + NoLegend()
 DoHeatmap(pancreas_h4_seurat, features = known_marker) + NoLegend()
+
+DoHeatmap(pancreas_all_seurat, features = topn_all) + NoLegend()
+
 
 
 #### Data Pancreas Author ways ####
@@ -525,7 +549,7 @@ sce_pancreas_all <- SingleCellExperiment(pancreas_all)
 sce_pancreas_h1 <- SingleCellExperiment(pancreas_h1)
 tpm(sce_pancreas_all) <- calculateTPM(pancreas_all)
 tpm(sce_pancreas_h1) <- calculateTPM(pancreas_h1)
-filterGenes(sce_pancreas_all, fano)
+filterGenes(sce_pancreas_all, fano=)
 
 
 
