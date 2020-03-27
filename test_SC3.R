@@ -48,6 +48,10 @@ if (!require('roots')){
   install.packages('roots')
   library('roots')
 }
+if (!require('nnls')){
+  install.packages('nnls')
+  library('nnls')
+}
 
 setwd("Master_2/")
 load('dataset/.RData')
@@ -541,16 +545,39 @@ DoHeatmap(pancreas_h4_seurat, features = known_marker) + NoLegend()
 
 DoHeatmap(pancreas_all_seurat, features = topn_all) + NoLegend()
 
+pancreas_avg <- AverageExpression(pancreas_all_seurat)
 
+
+#selected_genes_sc <- subset(pancreas_avg$SCT, rownames(pancreas_avg$SCT) %in% pancreas_all_seurat_markers$gene)
+selected_genes_sc <- subset(pancreas_avg$SCT, rownames(pancreas_avg$SCT) %in% selected_genes_bulk$id)
+GetAssayData(object = pancreas_all_seurat, slot = 'data')[1:3,1:3]
 
 #### Data Pancreas Author ways ####
-
-sce_pancreas_all <- SingleCellExperiment(pancreas_all)
-sce_pancreas_h1 <- SingleCellExperiment(pancreas_h1)
-tpm(sce_pancreas_all) <- calculateTPM(pancreas_all)
-tpm(sce_pancreas_h1) <- calculateTPM(pancreas_h1)
-filterGenes(sce_pancreas_all, fano=)
-
-
+#
+#sce_pancreas_all <- SingleCellExperiment(pancreas_all)
+#sce_pancreas_h1 <- SingleCellExperiment(pancreas_h1)
+#tpm(sce_pancreas_all) <- calculateTPM(pancreas_all)
+#tpm(sce_pancreas_h1) <- calculateTPM(pancreas_h1)
+#filterGenes(sce_pancreas_all, fano=)
 
 
+#### Bulk Pancreas GSE50244 ####
+
+pancreas_bulk <- read.table('dataset/GSE50244_Genes_counts_TMM_NormLength_atLeastMAF5_expressed.txt.gz', header = T)
+
+selected_genes_bulk <- subset(pancreas_bulk, pancreas_bulk$id %in% pancreas_all_seurat_markers$gene)
+
+nnls(as.matrix(selected_genes_sc),as.vector(selected_genes_bulk[,4]))
+
+dim(selected_genes_sc)
+dim(selected_genes_bulk)
+head(selected_genes_bulk)
+head(selected_genes_sc)
+sum_to_one <- c(rep(1,19))
+test <- rbind(selected_genes_sc,sum_to_one)
+test[2863:2865,]
+sum_to_one <- c(as.factor('constraint'),rep(1,90))
+test_bulk <- rbind(selected_genes_bulk,sum_to_one)
+test_bulk[2863:2865,]
+
+nnls(as.matrix(test), as.vector(test_bulk[,4]))
