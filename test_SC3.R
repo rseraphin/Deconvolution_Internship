@@ -53,6 +53,7 @@ if (!require('nnls')){
   library('nnls')
 }
 
+
 setwd("Master_2/")
 load('dataset/.RData')
 
@@ -567,7 +568,10 @@ pancreas_bulk <- read.table('dataset/GSE50244_Genes_counts_TMM_NormLength_atLeas
 
 selected_genes_bulk <- subset(pancreas_bulk, pancreas_bulk$id %in% pancreas_all_seurat_markers$gene)
 
-nnls(as.matrix(selected_genes_sc),as.vector(selected_genes_bulk[,4]))
+write_tsv(selected_genes_bulk,'Selected_gene_bulk.tsv')
+write_tsv(selected_genes_sc,'Selected_gene_sc.tsv')
+
+nnls(as.matrix(selected_genes_sc), as.vector(selected_genes_bulk[,4]))
 
 dim(selected_genes_sc)
 dim(selected_genes_bulk)
