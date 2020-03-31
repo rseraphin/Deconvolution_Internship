@@ -529,7 +529,7 @@ length(pancreas_h2_seurat_markers$gene)
 
 known_marker <- c("GCG",'INS','PPY','SST','GHRL','PRSS1',"CPA1",'KRT19','SPARC','VWF','RGS5','PDGFRA','SOX10','SDS','TPSAB1','TRAC')
 
-topn_all <- pancreas_all_seurat_markers %>% group_by(cluster) %>% top_n(n=10, wt = avg_logFC)
+topn_all <- pancreas_all_seurat_markers %>% group_by(cluster) %>% top_n(n=20, wt = avg_logFC)
 DoHeatmap(pancreas_all_seurat, features = known_marker) + NoLegend()
 
 known_marker %in% pancreas_all_seurat_markers$gene
@@ -537,6 +537,8 @@ topn_all$gene %in% pancreas_all_seurat
 
 subset(pancreas_h1_seurat_markers, pancreas_h1_seurat_markers$gene %in% known_marker) 
 subset(pancreas_all_seurat_markers, pancreas_all_seurat_markers$gene %in% known_marker) 
+
+
 
 topn_h1 <- pancreas_h1_seurat_markers %>% group_by(cluster) %>% top_n(n=5, wt = avg_logFC)
 DoHeatmap(pancreas_h1_seurat, features = known_marker) + NoLegend()
@@ -550,7 +552,7 @@ pancreas_avg <- AverageExpression(pancreas_all_seurat)
 
 
 #selected_genes_sc <- subset(pancreas_avg$SCT, rownames(pancreas_avg$SCT) %in% pancreas_all_seurat_markers$gene)
-selected_genes_sc <- subset(pancreas_avg$SCT, rownames(pancreas_avg$SCT) %in% selected_genes_bulk$id)
+
 GetAssayData(object = pancreas_all_seurat, slot = 'data')[1:3,1:3]
 
 #### Data Pancreas Author ways ####
@@ -567,11 +569,20 @@ GetAssayData(object = pancreas_all_seurat, slot = 'data')[1:3,1:3]
 pancreas_bulk <- read.table('dataset/GSE50244_Genes_counts_TMM_NormLength_atLeastMAF5_expressed.txt.gz', header = T)
 
 selected_genes_bulk <- subset(pancreas_bulk, pancreas_bulk$id %in% pancreas_all_seurat_markers$gene)
+selected_genes_sc <- subset(pancreas_avg$SCT, rownames(pancreas_avg$SCT) %in% selected_genes_bulk$id)
+
+top20_gene_bulk <- subset(pancreas_bulk, pancreas_bulk$id %in% topn_all$gene)
+top20_genes_sc <- subset(pancreas_avg$SCT, rownames(pancreas_avg$SCT) %in% top20_gene_bulk$id)
 
 write_tsv(selected_genes_bulk,'Selected_gene_bulk.tsv')
 write_tsv(selected_genes_sc,'Selected_gene_sc.tsv')
 
+write_tsv(top20_gene_bulk, "Top20_marker_bulk.tsv")
+write_tsv(top20_genes_sc, "Top20_marker_sc.tsv")
+
+
 nnls(as.matrix(selected_genes_sc), as.vector(selected_genes_bulk[,4]))
+nnls(as.matrix(top20_genes_sc), as.vector(top20_gene_bulk[,4]))
 
 dim(selected_genes_sc)
 dim(selected_genes_bulk)
