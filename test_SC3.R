@@ -596,3 +596,7 @@ test_bulk <- rbind(selected_genes_bulk,sum_to_one)
 test_bulk[2863:2865,]
 
 nnls(as.matrix(test), as.vector(test_bulk[,4]))
+
+
+
+
