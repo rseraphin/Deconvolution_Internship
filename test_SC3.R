@@ -279,7 +279,7 @@ marker_clust1 <- get_marker_genes(sce4, )
 
 
 #### Seurat lungs ####
-
+data_lungs_unNorm <- read.table("dataset/GSE113530_countsFinal.txt", header = TRUE)
 seurat_lungs_data <- CreateSeuratObject(counts = data_lungs_unNorm)
 seurat_lungs_data <- SCTransform(seurat_lungs_data)
 
@@ -308,6 +308,11 @@ seurat_clust1_Norm <- subset(seurat_final_markers_Norm$gene, seurat_final_marker
 seurat_clust0_Norm <- subset(seurat_final_markers_Norm$gene, seurat_final_markers_Norm$cluster == 0)
 
 #### Seurat Sciatic Nerves ####
+data_single <- read.table("dataset/GSE144707_countTable_aggrNerveStStD1D5.txt.gz", header = TRUE)
+data_single[1:3, 1:3]
+rownames(data_single) <- data_single[,1]
+data_single <- subset(data_single, select = -1)
+
 
 siatic <- CreateSeuratObject(counts = data_single)
 siatic <- SCTransform(siatic)

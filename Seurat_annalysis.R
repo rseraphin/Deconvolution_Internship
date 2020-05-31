@@ -18,6 +18,125 @@ if (!require('nnls')){
 
 setwd("Master_2/")
 #load('dataset/.RData')
+
+#### Seurat lungs ####
+data_lungs_unNorm <- read.table("dataset/GSE113530_countsFinal.txt", header = TRUE)
+seurat_lungs_data <- CreateSeuratObject(counts = data_lungs_unNorm)
+seurat_lungs_data <- SCTransform(seurat_lungs_data)
+
+seurat_lungs_data <- RunPCA(seurat_lungs_data)
+seurat_lungs_data <- RunUMAP(seurat_lungs_data, dims = 1:30)
+seurat_lungs_data <- FindNeighbors(seurat_lungs_data, dims = 1:30)
+seurat_lungs_data <- FindClusters(seurat_lungs_data)
+DimPlot(seurat_lungs_data, label = T) + NoLegend()
+seurat_markers <- FindAllMarkers(seurat_lungs_data, only.pos = T, min.pct =  0.25, logfc.threshold = 0.25)
+seurat_final_markers <- seurat_markers %>% group_by(cluster) %>% top_n(n = 20, wt = avg_logFC)
+seurat_clust1 <- subset(seurat_final_markers$gene, seurat_final_markers$cluster == 1)
+seurat_clust0 <- subset(seurat_final_markers$gene, seurat_final_markers$cluster == 0)
+
+
+seurat_lungs_Norm_data <- CreateSeuratObject(counts = data_lungs)
+seurat_lungs_Norm_data <- SCTransform(seurat_lungs_Norm_data)
+
+seurat_lungs_Norm_data <- RunPCA(seurat_lungs_Norm_data)
+seurat_lungs_Norm_data <- RunUMAP(seurat_lungs_Norm_data, dims = 1:30)
+seurat_lungs_Norm_data <- FindNeighbors(seurat_lungs_Norm_data, dims = 1:30)
+seurat_lungs_Norm_data <- FindClusters(seurat_lungs_Norm_data)
+DimPlot(seurat_lungs_Norm_data, label = T) + NoLegend()
+seurat_markers_Norm <- FindAllMarkers(seurat_lungs_Norm_data, only.pos = T, min.pct =  0.25, logfc.threshold = 0.25)
+seurat_final_markers_Norm <- seurat_markers_Norm %>% group_by(cluster) %>% top_n(n = 20, wt = avg_logFC)
+seurat_clust1_Norm <- subset(seurat_final_markers_Norm$gene, seurat_final_markers_Norm$cluster == 1)
+seurat_clust0_Norm <- subset(seurat_final_markers_Norm$gene, seurat_final_markers_Norm$cluster == 0)
+
+#### Seurat Sciatic Nerves ####
+data_single <- read.table("dataset/GSE144707_countTable_aggrNerveStStD1D5.txt", header = TRUE)
+data_single[1:3, 1:3]
+rownames(data_single) <- data_single[,1]
+data_single <- subset(data_single, select = -1)
+
+
+siatic <- CreateSeuratObject(counts = data_single)
+siatic <- SCTransform(siatic)
+siatic <- RunPCA(siatic)
+siatic <- RunUMAP(siatic, dims = 1:30)
+siatic <- FindNeighbors(siatic, dims = 1:30)
+siatic <- FindClusters(siatic)
+DimPlot(siatic, label = T) + NoLegend()
+siatic_markers <- FindAllMarkers(siatic, only.pos = T, min.pct =  0.25, logfc.threshold = 0.25)
+siatic_markers_final <- siatic_markers %>% group_by(cluster) %>% top_n(n = 20, wt = avg_logFC)
+
+write_delim(siatic_markers_final, "seurat_markers_GSE144707", "\t")
+
+
+
+#### Seurat broad####
+seurat_broad_data <- CreateSeuratObject(counts = data_broad)
+seurat_broad_data <- SCTransform(seurat_broad_data)
+
+seurat_broad_data <- RunPCA(seurat_broad_data)
+seurat_broad_data <- RunUMAP(seurat_broad_data, dims = 1:30)
+seurat_broad_data <- FindNeighbors(seurat_broad_data, dims = 1:30)
+seurat_broad_data <- FindClusters(seurat_broad_data)
+DimPlot(seurat_broad_data, label = T) + NoLegend()
+seurat_markers_broad <- FindAllMarkers(seurat_broad_data, only.pos = T, min.pct =  0.25, logfc.threshold = 0.25)
+seurat_final_markers_broad <- seurat_markers_broad %>% group_by(cluster) %>% top_n(n = 50, wt = avg_logFC)
+
+write_delim(seurat_final_markers_broad, "seurat_markers_GSE92332", "\t")
+#### comparaison marker ####
+
+seurat_clust0 <- gsub("-","_", seurat_clust0)
+seurat_clust0_Norm <- gsub("-","_", seurat_clust0_Norm)
+seurat_clust1 <- gsub("-","_", seurat_clust1)
+seurat_clust1_Norm <- gsub("-","_", seurat_clust1_Norm)
+intersect(seurat_clust0,sc3_clust1)
+intersect(seurat_clust0,sc3_clust3)
+intersect(seurat_clust0, seurat_clust0_Norm)
+intersect(seurat_clust0, seurat_clust1_Norm)
+intersect(seurat_clust1,sc3_clust1)
+intersect(seurat_clust1,sc3_clust3)
+intersect(seurat_clust1, seurat_clust0_Norm)
+intersect(seurat_clust1, seurat_clust1_Norm)
+
+intersect(seurat_clust0_Norm, sc3_clust1)
+intersect(seurat_clust0_Norm, sc3_clust3)
+intersect(seurat_clust1_Norm, sc3_clust1)
+intersect(seurat_clust1_Norm, sc3_clust3)
+
+
+write_delim(as.data.frame(seurat_clust0), 'seurat_clust0_markers_GSE113530', '\t')
+write_delim(as.data.frame(seurat_clust1), 'seurat_clust1_markers_GSE113530', '\t')
+
+
+#### Bulk sciatic ####
+
+data_bulk <- read.table("dataset/GSE144705_processedData_bulkRNAseq_YdensEtAl.txt.gz", header = TRUE)
+data_bulk
+
+data_bulk_marker <- subset(data_bulk, data_bulk$Gene %like% siatic_markers$gene)
+rownames(data_bulk_marker) <- data_bulk_marker$Gene
+data_bulk_marker <- subset(data_bulk_marker, select= -1)
+bulk_samples <- data.frame(matrix(nrow = 13 ,ncol =0 ))
+rownames(bulk_samples) <- colnames(data_bulk_marker)[2:14]
+bulk_samples$condition <- rep(c("SN","ON","SPF"),c(4,4,5))
+
+dds <- DESeqDataSetFromMatrix(countData = data_bulk_marker,
+                              colData = bulk_samples,
+                              design = ~ condition)
+
+
+dds <- DESeq(dds)
+res_SN_ON <- results(dds, contrast = c("condition","SN","ON"))
+res_SN_SPF <- results(dds, contrast = c("condition","SN","SPF"))
+res_ON_SPF <- results(dds, contrast = c("condition","SPF","ON"))
+
+sum(res$padj < 0.1, na.rm=TRUE)
+sum(res_ON_SPF$padj < 0.1, na.rm=TRUE)
+sum(res_SN_ON$padj < 0.1, na.rm=TRUE)
+sum(res_SN_SPF$padj < 0.1, na.rm=TRUE)
+
+
+
+
 #### Pancreas dataset ####
 pancreas_h1 <- read.csv("dataset/GSE84133_Pancreas/GSM2230757_human1_umifm_counts.csv.gz", header = TRUE)
 rownames(pancreas_h1) <- pancreas_h1$X
@@ -31,12 +150,13 @@ pancreas_h1_seurat <- CreateSeuratObject(counts = pancreas_h1)
 pancreas_h1_seurat <- SCTransform(pancreas_h1_seurat)
 
 pancreas_h1_seurat <- RunPCA(pancreas_h1_seurat)
-pancreas_h1_seurat <- RunUMAP(pancreas_h1_seurat, dims = 10:20)
-pancreas_h1_seurat <- FindNeighbors(pancreas_h1_seurat, dims = 10:20)
-pancreas_h1_seurat <- FindClusters(pancreas_h1_seurat, resolution = 0.6)
+pancreas_h1_seurat <- RunUMAP(pancreas_h1_seurat, dims = 1:30)
+pancreas_h1_seurat <- FindNeighbors(pancreas_h1_seurat, dims = 1:30)
+#pancreas_h1_seurat <- FindClusters(pancreas_h1_seurat, resolution = 0.6)
+pancreas_h1_seurat <- FindClusters(pancreas_h1_seurat)
 DimPlot(pancreas_h1_seurat, label = T) + NoLegend()
 pancreas_h1_seurat_markers <- FindAllMarkers(pancreas_h1_seurat, only.pos = T, min.pct =  0.25, logfc.threshold = 0.25)
-
+pancreas_h1_seurat_markers_c <- FindAllMarkers(pancreas_h1_seurat, only.pos = T)
 
 pancreas_h1_seurat <- RunTSNE(pancreas_h1_seurat, )
 TSNEPlot(pancreas_h1_seurat)
@@ -82,6 +202,29 @@ pancreas_h2_seurat <- FindNeighbors(pancreas_h2_seurat, dims = 1:30)
 pancreas_h2_seurat <- FindClusters(pancreas_h2_seurat)
 DimPlot(pancreas_h2_seurat, label = T) + NoLegend()
 pancreas_h2_seurat_markers <- FindAllMarkers(pancreas_h2_seurat, only.pos = T, min.pct =  0.25, logfc.threshold = 0.25)
+
+
+
+
+
+meta_data_h2 <- pancreas_h2_seurat@meta.data
+
+treated_h2_data <- as.matrix(GetAssayData(pancreas_h2_seurat,slot='data'))
+
+pancreas_h2_avg <- AverageExpression(pancreas_h2_seurat)
+
+write.table(meta_data_h2, 'dataset/meta_data_h2', quote = FALSE,sep = '\t', col.names = NA)
+write.table(as.data.frame(treated_h2_data), 'dataset/treated_h2_data', quote = FALSE, sep = '\t', col.names = NA)
+
+
+selected_genes_bulk_h2 <- subset(pancreas_bulk, pancreas_bulk$id %in% pancreas_h2_seurat_markers$gene)
+selected_genes_sc_h2 <- subset(pancreas_h2_avg$SCT, rownames(pancreas_h2_avg$SCT) %in% selected_genes_bulk_h2$id)
+
+write_tsv(selected_genes_bulk_h2, 'dataset/selected_genes_bulk_h2')
+write.table(selected_genes_sc_h2, 'dataset/selected_genes_sc_h2', sep='\t' , quote=FALSE, col.names = NA)
+
+
+
 
 
 
@@ -173,7 +316,7 @@ length(pancreas_h1_seurat_markers$gene)
 length(pancreas_h2_seurat_markers$gene)
 
 known_marker <- c("GCG",'INS','PPY','SST','GHRL','PRSS1',"CPA1",'KRT19','SPARC','VWF','RGS5','PDGFRA','SOX10','SDS','TPSAB1','TRAC')
-
+cell_types <- c('Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Acinar', 'Acinar', 'Ductal', '', 'Endothelial', 'quiescent stellate', 'activate stellate', 'schwann', 'Macrophage', 'Mast', 'Cytotoxyc T')
 topn_all <- pancreas_all_seurat_markers %>% group_by(cluster) %>% top_n(n=20, wt = avg_logFC)
 DoHeatmap(pancreas_all_seurat, features = known_marker) + NoLegend()
 
@@ -186,11 +329,14 @@ subset(pancreas_all_seurat_markers, pancreas_all_seurat_markers$gene %in% known_
 
 
 topn_h1 <- pancreas_h1_seurat_markers %>% group_by(cluster) %>% top_n(n=5, wt = avg_logFC)
-DoHeatmap(pancreas_h1_seurat, features = known_marker) + NoLegend()
-DoHeatmap(pancreas_h2_seurat, features = known_marker) + NoLegend()
-DoHeatmap(pancreas_h3_seurat, features = known_marker) + NoLegend()
-DoHeatmap(pancreas_h4_seurat, features = known_marker) + NoLegend()
+DefaultAssay(object = pancreas_h1_seurat) <- "SCT"
+t1 <- DoHeatmap(pancreas_h1_seurat, features = known_marker) + NoLegend()
+t2 <- DoHeatmap(pancreas_h2_seurat, features = known_marker) + NoLegend()
+t3 <- DoHeatmap(pancreas_h3_seurat, features = known_marker) + NoLegend()
+t4 <- DoHeatmap(pancreas_h4_seurat, features = known_marker) + NoLegend()
 
+par(mfrow=c(2,2))
+plot(t2)
 DoHeatmap(pancreas_all_seurat, features = topn_all) + NoLegend()
 
 pancreas_avg <- AverageExpression(pancreas_all_seurat)
@@ -199,7 +345,7 @@ pancreas_avg <- AverageExpression(pancreas_all_seurat)
 #selected_genes_sc <- subset(pancreas_avg$SCT, rownames(pancreas_avg$SCT) %in% pancreas_all_seurat_markers$gene)
 
 GetAssayData(object = pancreas_all_seurat, slot = 'data')[1:3,1:3]
-
+GetAssayData(object = pancreas_h1_seurat, slot = 'RNA')
 #### Bulk Pancreas GSE50244 ####
 
 pancreas_bulk <- read.table('dataset/GSE50244_Genes_counts_TMM_NormLength_atLeastMAF5_expressed.txt.gz', header = T)
