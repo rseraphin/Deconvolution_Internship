@@ -329,6 +329,11 @@ subset(pancreas_all_seurat_markers, pancreas_all_seurat_markers$gene %in% known_
 
 
 topn_h1 <- pancreas_h1_seurat_markers %>% group_by(cluster) %>% top_n(n=5, wt = avg_logFC)
+top_1_h2 <- pancreas_h2_seurat_markers %>% group_by(cluster) %>% top_n(n=1, wt = avg_logFC)
+top_5_h2 <- pancreas_h2_seurat_markers %>% group_by(cluster) %>% top_n(n=5, wt = avg_logFC)
+top_10_h2 <- pancreas_h2_seurat_markers %>% group_by(cluster) %>% top_n(n=10, wt = avg_logFC)
+top_20_h2 <- pancreas_h2_seurat_markers %>% group_by(cluster) %>% top_n(n=20, wt = avg_logFC)
+top_50_h2 <- pancreas_h2_seurat_markers %>% group_by(cluster) %>% top_n(n=50, wt = avg_logFC)
 DefaultAssay(object = pancreas_h1_seurat) <- "SCT"
 t1 <- DoHeatmap(pancreas_h1_seurat, features = known_marker) + NoLegend()
 t2 <- DoHeatmap(pancreas_h2_seurat, features = known_marker) + NoLegend()
@@ -338,6 +343,31 @@ t4 <- DoHeatmap(pancreas_h4_seurat, features = known_marker) + NoLegend()
 par(mfrow=c(2,2))
 plot(t2)
 DoHeatmap(pancreas_all_seurat, features = topn_all) + NoLegend()
+
+top1_h2_gene_bulk <- subset(pancreas_bulk, pancreas_bulk$id %in% top_1_h2$gene)
+top5_h2_gene_bulk <- subset(pancreas_bulk, pancreas_bulk$id %in% top_5_h2$gene)
+top10_h2_gene_bulk <- subset(pancreas_bulk, pancreas_bulk$id %in% top_10_h2$gene)
+top20_h2_gene_bulk <- subset(pancreas_bulk, pancreas_bulk$id %in% top_20_h2$gene)
+top50_h2_gene_bulk <- subset(pancreas_bulk, pancreas_bulk$id %in% top_50_h2$gene)
+
+write_tsv(top1_h2_gene_bulk, "dataset/top1_h2_genes_bulk.tsv")
+write_tsv(top5_h2_gene_bulk, "dataset/top5_h2_genes_bulk.tsv")
+write_tsv(top10_h2_gene_bulk, "dataset/top10_h2_genes_bulk.tsv")
+write_tsv(top20_h2_gene_bulk, "dataset/top20_h2_genes_bulk.tsv")
+write_tsv(top50_h2_gene_bulk, "dataset/top50_h2_genes_bulk.tsv")
+
+top1_genes_h2 <- subset(pancreas_h2_avg$SCT, rownames(pancreas_h2_avg$SCT) %in% top1_h2_gene_bulk$id)
+top5_genes_h2 <- subset(pancreas_h2_avg$SCT, rownames(pancreas_h2_avg$SCT) %in% top5_h2_gene_bulk$id)
+top10_genes_h2 <- subset(pancreas_h2_avg$SCT, rownames(pancreas_h2_avg$SCT) %in% top10_h2_gene_bulk$id)
+top20_genes_h2 <- subset(pancreas_h2_avg$SCT, rownames(pancreas_h2_avg$SCT) %in% top20_h2_gene_bulk$id)
+top50_genes_h2 <- subset(pancreas_h2_avg$SCT, rownames(pancreas_h2_avg$SCT) %in% top50_h2_gene_bulk$id)
+
+write_tsv(top1_genes_h2, "dataset/top1_genes_h2.tsv")
+write_tsv(top10_genes_h2, "dataset/top10_genes_h2.tsv")
+write_tsv(top5_genes_h2, "dataset/top5_genes_h2.tsv")
+write_tsv(top20_genes_h2, "dataset/top20_genes_h2.tsv")
+write_tsv(top50_genes_h2, "dataset/top50_genes_h2.tsv")
+
 
 pancreas_avg <- AverageExpression(pancreas_all_seurat)
 
