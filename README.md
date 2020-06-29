@@ -20,6 +20,6 @@ Example and functions for the deconvolution is provided in the 'Function_and_Exa
 
 ## Observations
 
-The first simulation method "rand_bulk" and associated "rand_subset" doesn't yoeld good result and should be improved.
+The first simulation method "rand_bulk" and associated "rand_subset" doesn't yield good result and should be improved.
 
 The "nnls" method seem to be the best tested deconvolution method as it is faster and more precise. It is thus the best lead to persue this work.
