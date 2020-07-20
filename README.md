@@ -1,6 +1,6 @@
 # Deconvolution Internship
 
-This reporory contains work done by Remi SERAPHIN during his internship from 02/2020 to 06/2020.
+This repository contains work done by Remi SERAPHIN during his internship from 02/2020 to 06/2020.
 
 The objective is to infer cell composition of a bulk dataset using cell type specific expression derived using single cell dataset using deconvolution.
 
@@ -10,7 +10,7 @@ To perform data analysis R is required.
 
 To perform deconvolution Python is required.
 
-To perform the example Jupyter is required.
+To run the example Jupyter is required.
 
 ## Examples
 
